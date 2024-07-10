@@ -10,7 +10,7 @@ var migrations = []darwin.Migration{
 	{
 		Version:     1,
 		Description: "Create uuid extension",
-		Script:      `CREATE EXTENSION "uuid-ossp";`,
+		Script:      `CREATE EXTENSION IF NOT EXISTS "uuid-ossp";`,
 	},
 	{
 		Version:     2,
@@ -28,9 +28,9 @@ var migrations = []darwin.Migration{
 				storage_id uuid,
 				source varchar(128),
 				is_allow_to_comment bool NOT NULL,
-				updated_at timestamptz NOT NULL,
+				updated_at timestamptz NOT NULL DEFAULT timezone('utc', NOW()),
 				updated_by uuid,
-				created_at timestamptz NOT NULL
+				created_at timestamptz NOT NULL DEFAULT timezone('utc', NOW())
 			);
 			CREATE INDEX idx_subject_class_id ON posts(subject_class_id);
 			CREATE INDEX idx_topic_subject_id ON posts(topic_subject_id);
@@ -47,8 +47,8 @@ var migrations = []darwin.Migration{
 				post_id uuid NOT NULL,
 				student_id uuid NOT NULL, 
 				student_name varchar(45) NOT NULL, 
-				coment text NOT NULL,
-				created_at timestamptz NOT NULL,
+				comment text NOT NULL,
+				created_at timestamptz NOT NULL DEFAULT timezone('utc', NOW()),
 				CONSTRAINT fk_student_posts_to_posts FOREIGN KEY(post_id) REFERENCES posts(id) ON DELETE CASCADE 
 			);
 			CREATE INDEX idx_student_id ON student_posts(student_id);
