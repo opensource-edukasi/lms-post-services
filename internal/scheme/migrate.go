@@ -28,6 +28,7 @@ var migrations = []darwin.Migration{
 				storage_id uuid,
 				source varchar(128),
 				is_allow_to_comment bool NOT NULL,
+				is_published bool NOT NULL DEFAULT true,
 				updated_at timestamptz NOT NULL DEFAULT timezone('utc', NOW()),
 				updated_by uuid,
 				created_at timestamptz NOT NULL DEFAULT timezone('utc', NOW())
