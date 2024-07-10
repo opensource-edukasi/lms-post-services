@@ -1,4 +1,4 @@
-module skeleton
+module lms-post-service
 
 go 1.20
 

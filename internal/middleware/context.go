@@ -3,7 +3,7 @@ package middleware
 import (
 	"context"
 
-	"skeleton/internal/pkg/app"
+	"lms-post-service/internal/pkg/app"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
