@@ -18,6 +18,20 @@ type PostRepository struct {
 }
 
 func (a *PostRepository) CreatePost(ctx context.Context) error {
+	if (a.pb.Type != postPb.PostType_DISKUSI && a.pb.Type != postPb.PostType_INFO) && a.pb.TypeId == "" {
+		return status.Errorf(codes.InvalidArgument, "TypeId cannot be empty for this post type")
+	}
+
+	if a.pb.FileType == "" {
+		if a.pb.StorageId != "" && a.pb.Source != "" {
+			return status.Errorf(codes.InvalidArgument, "StorageId dan Source harus kosong jika FileType kosong")
+		} else if a.pb.StorageId != "" {
+			return status.Errorf(codes.InvalidArgument, "FileType harus diisi jika StorageId diisi")
+		} else if a.pb.Source != "" {
+			return status.Errorf(codes.InvalidArgument, "FileType harus diisi jika Source diisi")
+		}
+	}
+
 	query := `
 		INSERT INTO posts
 		(subject_class_id, topic_subject_id, type, type_id, title, description, file_type, storage_id, source, is_allow_to_comment, is_published, updated_by)
@@ -33,17 +47,15 @@ func (a *PostRepository) CreatePost(ctx context.Context) error {
 	}
 	defer stmt.Close()
 
-	a.pb.UpdatedBy = ctx.Value("user_id").(string)
-
 	err = stmt.QueryRowContext(ctx,
 		a.pb.SubjectClassId,
 		a.pb.TopicSubjectId,
 		a.pb.Type,
-		a.pb.TypeId,
+		sql.NullString{String: a.pb.TypeId, Valid: a.pb.TypeId != ""},
 		a.pb.Title,
 		a.pb.Description,
 		a.pb.FileType,
-		a.pb.StorageId,
+		sql.NullString{String: a.pb.StorageId, Valid: a.pb.StorageId != ""},
 		a.pb.Source,
 		a.pb.IsAllowToComment,
 		a.pb.IsPublished,

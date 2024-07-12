@@ -9,9 +9,11 @@ message CreatePostRequest {
     string subject_class_id = 2;
     string topic_subject_id = 3;
     PostType type = 4;
+    string type_id = 5;
     string title = 6;
     string description = 7;
     string file_type = 8;
+    string storage_id = 9;
     string source = 10;
     bool is_allow_to_comment = 11;
     bool is_published = 12;

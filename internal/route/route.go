@@ -4,13 +4,15 @@ import (
 	"database/sql"
 	"log"
 
-	"google.golang.org/grpc"
-
+	postDomain "lms-post-service/internal/domain/posts"
 	"lms-post-service/internal/pkg/db/redis"
+	postPb "lms-post-service/pb/posts"
+
+	"google.golang.org/grpc"
 )
 
 // GrpcRoute func
 func GrpcRoute(grpcServer *grpc.Server, db *sql.DB, log *log.Logger, cache *redis.Cache) {
-	//quizServer := quizDomain.QuizService{Db: db, Cache: cache}
-	//quizPb.RegisterQuizzesServer(grpcServer, &quizServer)
+	postServer := postDomain.PostService{Db: db, Cache: cache, Log: log}
+	postPb.RegisterPostsServer(grpcServer, &postServer)
 }
