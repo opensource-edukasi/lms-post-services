@@ -1,0 +1,11 @@
+syntax = "proto3";
+package posts;
+
+option go_package = "pb/posts;posts";
+
+import "posts/post_input.proto";
+import "posts/post_message.proto";
+
+service Posts {
+     rpc CreatePost(CreatePostRequest) returns (Post) {}
+}
