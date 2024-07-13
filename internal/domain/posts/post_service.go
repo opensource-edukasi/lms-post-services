@@ -7,7 +7,10 @@ import (
 	"lms-post-service/internal/pkg/db/redis"
 	postPb "lms-post-service/pb/posts"
 	"log"
+	"net/url"
+	"regexp"
 
+	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -16,6 +19,34 @@ type PostService struct {
 	Db    *sql.DB
 	Cache *redis.Cache
 	Log   *log.Logger
+}
+
+var validFileTypes = map[string]string{
+	".jpg":  "J",
+	".png":  "P",
+	".pdf":  "F",
+	".docx": "D",
+	".mp4":  "M",
+}
+
+func isValidUUID(u string) bool {
+	_, err := uuid.Parse(u)
+	return err == nil
+}
+
+func isValidURL(u string) bool {
+	_, err := url.ParseRequestURI(u)
+	return err == nil
+}
+
+func isYouTubeURL(u string) bool {
+	re := regexp.MustCompile(`^(https?\:\/\/)?(www\.youtube\.com|youtu\.?be)\/.+$`)
+	return re.MatchString(u)
+}
+
+func isValidFileType(fileType string) (string, bool) {
+	char, exists := validFileTypes[fileType]
+	return char, exists
 }
 
 func (a *PostService) CreatePost(ctx context.Context, in *postPb.CreatePostRequest) (*postPb.Post, error) {
@@ -45,16 +76,29 @@ func (a *PostService) CreatePost(ctx context.Context, in *postPb.CreatePostReque
 	}
 
 	if len(postRepo.pb.StorageId) > 0 {
-		// validasi postRepo.pb.StorageId harus uuid yang valid
+		if !isValidUUID(postRepo.pb.StorageId) {
+			return nil, status.Errorf(codes.InvalidArgument, "StorageId harus UUID yang valid")
+		}
 	}
 
 	if len(postRepo.pb.Source) > 0 {
-		// validasi postRepo.pb.Source harus url yang valid
+		if !isValidURL(postRepo.pb.Source) {
+			return nil, status.Errorf(codes.InvalidArgument, "Source harus URL yang valid")
+		}
+
+		if isYouTubeURL(postRepo.pb.Source) {
+			postRepo.pb.FileType = "Y"
+		}
 	}
 
 	if len(postRepo.pb.FileType) > 0 {
-		// validasi postRepo.pb.FileType harus berisi data yang valid. type fiel yang diijinkan ada apa saja?
-		// misal .jpg, .pdf,  karena disimpan di DB dalam bentuk CHAR(1) berarti ada mapping dari tipe file .jpg ke CHAR(1)
+		if char, valid := isValidFileType(postRepo.pb.FileType); !valid {
+			if postRepo.pb.FileType != "Y" { 
+				return nil, status.Errorf(codes.InvalidArgument, "FileType harus berisi data yang valid")
+			}
+		} else {
+			postRepo.pb.FileType = char
+		}
 	}
 
 	if postRepo.pb.FileType == "" {
