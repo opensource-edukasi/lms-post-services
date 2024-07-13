@@ -3,11 +3,11 @@ package posts
 import (
 	"context"
 	"database/sql"
+	"lms-post-service/internal/pkg/app"
 	"lms-post-service/internal/pkg/db/redis"
 	postPb "lms-post-service/pb/posts"
 	"log"
 
-	"github.com/google/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -21,18 +21,13 @@ type PostService struct {
 func (a *PostService) CreatePost(ctx context.Context, in *postPb.CreatePostRequest) (*postPb.Post, error) {
 	var postRepo PostRepository
 	var err error
-	postRepo.Log = *a.Log
+	postRepo.Log = a.Log
 
 	postRepo.tx, err = a.Db.BeginTx(ctx, nil)
 	if err != nil {
 		a.Log.Println("Error beginning transaction: ", err)
-		return &postRepo.pb, err
+		return &postRepo.pb, status.Errorf(codes.Internal, "Error beginning transaction: %v", err)
 	}
-
-	if ctx.Value("user_id") == nil {
-		ctx = context.WithValue(ctx, "user_id", uuid.New().String())
-	}
-	userID := ctx.Value("user_id").(string)
 
 	postRepo.pb = postPb.Post{
 		SubjectClassId:   in.SubjectClassId,
@@ -44,9 +39,22 @@ func (a *PostService) CreatePost(ctx context.Context, in *postPb.CreatePostReque
 		Source:           in.Source,
 		IsAllowToComment: in.IsAllowToComment,
 		IsPublished:      in.IsPublished,
-		UpdatedBy:        userID,
+		UpdatedBy:        ctx.Value(app.Ctx("user_id")).(string),
 		TypeId:           in.TypeId,
 		StorageId:        in.StorageId,
+	}
+
+	if len(postRepo.pb.StorageId) > 0 {
+		// validasi postRepo.pb.StorageId harus uuid yang valid
+	}
+
+	if len(postRepo.pb.Source) > 0 {
+		// validasi postRepo.pb.Source harus url yang valid
+	}
+
+	if len(postRepo.pb.FileType) > 0 {
+		// validasi postRepo.pb.FileType harus berisi data yang valid. type fiel yang diijinkan ada apa saja?
+		// misal .jpg, .pdf,  karena disimpan di DB dalam bentuk CHAR(1) berarti ada mapping dari tipe file .jpg ke CHAR(1)
 	}
 
 	if postRepo.pb.FileType == "" {
