@@ -21,14 +21,6 @@ type PostService struct {
 	Log   *log.Logger
 }
 
-var validFileTypes = map[string]string{
-	".jpg":  "J",
-	".png":  "P",
-	".pdf":  "F",
-	".docx": "D",
-	".mp4":  "M",
-}
-
 func isValidUUID(u string) bool {
 	_, err := uuid.Parse(u)
 	return err == nil
@@ -45,6 +37,13 @@ func isYouTubeURL(u string) bool {
 }
 
 func isValidFileType(fileType string) (string, bool) {
+	validFileTypes := map[string]string{
+		".jpg":  "J",
+		".png":  "P",
+		".pdf":  "F",
+		".docx": "D",
+		".mp4":  "M",
+	}
 	char, exists := validFileTypes[fileType]
 	return char, exists
 }
@@ -93,7 +92,7 @@ func (a *PostService) CreatePost(ctx context.Context, in *postPb.CreatePostReque
 
 	if len(postRepo.pb.FileType) > 0 {
 		if char, valid := isValidFileType(postRepo.pb.FileType); !valid {
-			if postRepo.pb.FileType != "Y" { 
+			if postRepo.pb.FileType != "Y" {
 				return nil, status.Errorf(codes.InvalidArgument, "FileType harus berisi data yang valid")
 			}
 		} else {
