@@ -1,0 +1,32 @@
+syntax = "proto3";
+package posts;
+
+option go_package = "pb/posts;posts";
+
+enum PostType {
+    UNKNOWN = 0;
+    DISKUSI = 1;
+    MATERIAL = 2;
+    TASK = 3;
+    CONFERENCE = 4;
+    QUIZ = 5;
+    INFO = 6;
+}
+
+message Post {
+    string id = 1;
+    string subject_class_id = 2;
+    string topic_subject_id = 3;
+    PostType type = 4;
+    string type_id = 5;
+    string title = 6;
+    string description = 7;
+    string file_type = 8;
+    string storage_id = 9;
+    string source = 10;
+    bool is_allow_to_comment = 11;
+    bool is_published = 12;
+    string updated_by = 13;
+    string created_at = 14;
+    string updated_at = 15;
+}
