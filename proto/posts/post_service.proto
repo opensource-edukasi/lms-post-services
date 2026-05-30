@@ -3,9 +3,14 @@ package posts;
 
 option go_package = "pb/posts;posts";
 
+import "posts/generic_message.proto";
 import "posts/post_input.proto";
 import "posts/post_message.proto";
 
 service Posts {
      rpc CreatePost(CreatePostRequest) returns (Post) {}
+     rpc UpdatePost(UpdatePostRequest) returns (Post) {}
+     rpc GetPost(Id) returns (Post) {}
+     rpc UnpublishPost(Id) returns (BoolMessage) {}
+     rpc CreateComment(CreateCommentRequest) returns (Comment) {}
 }
